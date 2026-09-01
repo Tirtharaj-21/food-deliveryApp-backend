@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "restaurants")
 @Data
@@ -35,8 +37,15 @@ public class Restaurant {
     @Column(length = 100)
     private String city;
 
-    @Column
+    private String cuisine;
+
     private Double rating;
+
+    private String deliveryTime;
+
+    private Double deliveryFee;
+
+    private LocalDateTime createdAt;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;

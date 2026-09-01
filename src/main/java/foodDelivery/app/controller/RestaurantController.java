@@ -1,10 +1,12 @@
 package foodDelivery.app.controller;
 
 import foodDelivery.app.dto.request.RestaurantRequest;
+import foodDelivery.app.dto.response.ApiResponse;
 import foodDelivery.app.dto.response.RestaurantResponse;
 import foodDelivery.app.entity.Restaurant;
 import foodDelivery.app.service.RestaurantService;
 import jakarta.validation.Valid;
+import lombok.Builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,68 +16,64 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/restaurants")
+@Builder
 public class RestaurantController {
     @Autowired
     RestaurantService restaurantService;
 
-    @PostMapping
-    public ResponseEntity<RestaurantResponse> createRestaurant(
-            @Valid @RequestBody RestaurantRequest request
-    ) {
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(
-                        restaurantService.createRestaurant(request)
-                );
+    @PostMapping("/save")
+    public ResponseEntity<ApiResponse<String>> createRestaurant(@Valid @RequestBody RestaurantRequest request) {
+
+        restaurantService.createRestaurant(request);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .statusCode(HttpStatus.OK.value())
+                .success(true)
+                .message("Restaurant created successfully")
+                .data("Restaurant is stored successfully")
+                .build();
+        return ResponseEntity.ok(response);
     }
 
-//    @GetMapping
-//    public ResponseEntity<List<RestaurantResponse>> getAllRestaurants() {
-//
-//        return ResponseEntity.ok(
-//                restaurantService.getAllRestaurants()
-//        );
-//    }
+    @GetMapping("getAll/restaurants/{pageNo}/{pageSize}")
+    public ResponseEntity<List<RestaurantResponse>> getAllRestaurants(@PathVariable int pageNo, @PathVariable int pageSize,
+                                                                      @RequestParam (required=false)String search,
+                                                                      @RequestParam(defaultValue = "id") String sortBy,
+                                                                      @RequestParam(defaultValue = "asc") String sortDir) {
 
-    @GetMapping("/{id}")
-    public ResponseEntity<RestaurantResponse> getRestaurantById(
-            @PathVariable Long id
-    ) {
-
-        return ResponseEntity.ok(
-                restaurantService.getRestaurantById(id)
-        );
+        return ResponseEntity.ok(restaurantService.getAllRestaurants(pageNo,pageSize,search,sortBy,sortDir));
     }
 
-//    @GetMapping("/search")
-//    public ResponseEntity<List<RestaurantResponse>> searchRestaurants(
-//            @RequestParam String keyword
-//    ) {
-//
-//        return ResponseEntity.ok(
-//                restaurantService.searchRestaurants(keyword)
-//        );
-//    }
+    @GetMapping("/getRestaurantById/{id}")
+    public ResponseEntity<RestaurantResponse> getRestaurantById(@PathVariable Long id) {
 
-    @PutMapping("/{id}")
-    public ResponseEntity<RestaurantResponse> updateRestaurant(
-            @PathVariable Long id,
-            @Valid @RequestBody RestaurantRequest request
-    ) {
-
-        return ResponseEntity.ok(
-                restaurantService.updateRestaurant(id, request)
-        );
+        return ResponseEntity.ok(restaurantService.getRestaurantById(id));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRestaurant(
-            @PathVariable Long id
-    ) {
+    @PutMapping("updateRestaurantById/{id}")
+    public ResponseEntity<ApiResponse<String>> updateRestaurant(@PathVariable Long id,
+                                                               @Valid @RequestBody RestaurantRequest request) {
+
+        restaurantService.updateRestaurant(id, request);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .statusCode(HttpStatus.OK.value())
+                .success(true)
+                .message("Modify successfully")
+                .data("Restaurant is updated successfully")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("deleteRestaurantById/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteRestaurant(@PathVariable Long id) {
 
         restaurantService.deleteRestaurant(id);
 
-        return ResponseEntity.noContent().build();
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .statusCode(HttpStatus.OK.value())
+                .success(true)
+                .message("Deleted")
+                .data("Restaurant is deleted successfully")
+                .build();
+        return ResponseEntity.ok(response);
     }
-
 }
