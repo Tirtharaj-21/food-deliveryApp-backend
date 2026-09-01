@@ -28,5 +28,11 @@ public class RestaurantRequest {
     @DecimalMax(value = "5.0", message = "Rating cannot exceed 5")
     private Double rating;
 
+    private String cuisine;
+
+    private String deliveryTime;
+
+    private Double deliveryFee;
+
     private Boolean isActive = true;
 }
