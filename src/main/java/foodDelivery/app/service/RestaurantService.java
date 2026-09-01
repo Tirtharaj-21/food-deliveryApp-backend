@@ -6,15 +6,14 @@ import foodDelivery.app.dto.response.RestaurantResponse;
 import java.util.List;
 
 public interface RestaurantService {
-    RestaurantResponse createRestaurant(RestaurantRequest request);
+    void createRestaurant(RestaurantRequest request);
 
     RestaurantResponse getRestaurantById(Long id);
 
-//    List<RestaurantResponse> getAllRestaurants();
+    List<RestaurantResponse> getAllRestaurants(int pageNo, int pageSize, String search, String sortBy, String sortDir);
 
-//    List<RestaurantResponse> searchRestaurants(String keyword);
 
-    RestaurantResponse updateRestaurant(Long id, RestaurantRequest request);
+    void updateRestaurant(Long id, RestaurantRequest request);
 
     void deleteRestaurant(Long id);
 }
