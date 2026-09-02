@@ -1,5 +1,6 @@
 package foodDelivery.app.controller;
 import foodDelivery.app.dto.request.CategoryRequest;
+import foodDelivery.app.dto.response.ApiResponse;
 import foodDelivery.app.dto.response.CategoryResponse;
 import foodDelivery.app.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +22,8 @@ public class CategoryController {
 
     @Autowired
     CategoryService categoryService;
-    @PostMapping
-    public ResponseEntity<CategoryResponse> createCategory(
-            @Valid @RequestBody CategoryRequest request
-    ) {
+    @PostMapping("/save")
+    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest request) {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -33,42 +32,34 @@ public class CategoryController {
                 );
     }
 
-//    @GetMapping
-//    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
-//
-//        return ResponseEntity.ok(
-//                categoryService.getAllCategories()
-//        );
-//    }
+    @GetMapping("/getCategoryById/{id}")
+    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Long id) {
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> getCategoryById(
-            @PathVariable Long id
-    ) {
-
-        return ResponseEntity.ok(
-                categoryService.getCategoryById(id)
-        );
+        return ResponseEntity.ok(categoryService.getCategoryById(id));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CategoryResponse> updateCategory(
-            @PathVariable Long id,
-            @Valid @RequestBody CategoryRequest request
-    ) {
+    @PutMapping("/updateCategory/{id}")
+    public ResponseEntity<ApiResponse<String>> updateCategory(@PathVariable Long id,
+                                                           @Valid @RequestBody CategoryRequest request) {
 
-        return ResponseEntity.ok(
-                categoryService.updateCategory(id, request)
-        );
+        categoryService.updateCategory(id, request);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .statusCode(HttpStatus.OK.value())
+                .success(true)
+                .data("Category updated successfully")
+                .build();
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(
-            @PathVariable Long id
-    ) {
+    @DeleteMapping("removeCategory/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteCategory(@PathVariable Long id) {
 
         categoryService.deleteCategory(id);
-
-        return ResponseEntity.noContent().build();
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .statusCode(HttpStatus.OK.value())
+                .success(true)
+                .data("Category removed")
+                .build();
+        return ResponseEntity.ok(response);
     }
 }

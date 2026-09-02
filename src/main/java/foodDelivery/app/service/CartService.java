@@ -6,11 +6,10 @@ import foodDelivery.app.dto.response.CartResponse;
 public interface CartService {
     CartResponse getCart(Long userId);
 
-    CartResponse addItem(Long userId, CartItemRequest request);
+    void addItem(Long userId, CartItemRequest request);
 
-    CartResponse updateItem(Long userId, Long cartItemId, Integer quantity);
+    void updateItem(Long userId, Long cartItemId, Integer quantity);
 
     void removeItem(Long userId, Long cartItemId);
 
-    void clearCart(Long userId);
 }
