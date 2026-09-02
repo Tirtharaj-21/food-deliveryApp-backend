@@ -36,8 +36,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponse getCategoryById(Long id) {
 
-        Category category = categoryRepository
-                .findById(id)
+        Category category = categoryRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Category not found with id: " + id));
 
@@ -45,10 +44,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryResponse updateCategory(Long id, CategoryRequest request) {
+    public void updateCategory(Long id, CategoryRequest request) {
 
-        Category category = categoryRepository
-                .findById(id)
+        Category category = categoryRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Category not found with id: " + id)
                 );
@@ -58,20 +56,15 @@ public class CategoryServiceImpl implements CategoryService {
         category.setImageUrl(request.getImageUrl());
         category.setIsActive(request.getIsActive());
 
-        return mapToResponse(
-                categoryRepository.save(category));
+        categoryRepository.save(category);
     }
 
     @Override
     public void deleteCategory(Long id) {
 
-        Category category = categoryRepository
-                .findById(id)
+        Category category = categoryRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Category not found with id: " + id
-                        )
-                );
+                        new ResourceNotFoundException("Category not found with id: " + id));
 
         category.setIsActive(false);
 

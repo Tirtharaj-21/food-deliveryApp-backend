@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper
@@ -46,4 +47,15 @@ public interface CommonRepository {
         </script>
         """)
     long countAll(@Param("search") String search);
+
+    @Select("""
+    SELECT COALESCE(
+        SUM(ci.quantity * fi.price),
+        0
+    )
+    FROM CartItem ci
+    JOIN ci.foodItem fi
+    WHERE ci.cart.id = :cartId
+""")
+    BigDecimal calculateSubtotal(@Param("cartId") Long cartId);
 }

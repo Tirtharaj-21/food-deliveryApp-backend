@@ -1,5 +1,6 @@
 package foodDelivery.app.service;
 
+import foodDelivery.app.commonrepository.CommonRepository;
 import foodDelivery.app.dto.request.CartItemRequest;
 import foodDelivery.app.dto.response.CartItemResponse;
 import foodDelivery.app.dto.response.CartResponse;
@@ -13,7 +14,8 @@ import foodDelivery.app.repository.CartItemRepository;
 import foodDelivery.app.repository.CartRepository;
 import foodDelivery.app.repository.FoodItemRepository;
 import foodDelivery.app.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,36 +32,43 @@ public class CartServiceImpl implements CartService {
     @Autowired FoodItemRepository foodItemRepository;
     @Autowired UserRepository userRepository;
 
+    @Autowired
+    CommonRepository commonRepository;
+
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public CartResponse getCart(Long userId) {
 
         Cart cart = getOrCreateCart(userId);
 
-        List<CartItem> cartItems =
-                cartItemRepository.findByCartId(cart.getId());
+        List<CartItemResponse> items = cartItemRepository
+                .findByCartId(cart.getId())
+                .stream()
+                .map(this::mapCartItem)
+                .toList();
 
-        return buildCartResponse(cart);
+        BigDecimal subtotal = commonRepository.calculateSubtotal(cart.getId());
+
+        return CartResponse.builder()
+                .cartId(cart.getId())
+                .userId(userId)
+                .items(items)
+                .subtotal(subtotal)
+                .build();
     }
 
     @Override
     @Transactional
-    public CartResponse addItem(Long userId, CartItemRequest request) {
+    public void addItem(Long userId, CartItemRequest request) {
 
         Cart cart = getOrCreateCart(userId);
 
-        FoodItem foodItem = foodItemRepository
-                .findById(request.getFoodItemId())
+        FoodItem foodItem = foodItemRepository.findById(request.getFoodItemId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Food item not found"
-                        )
-                );
+                        new ResourceNotFoundException("Food item not found"));
 
         if (!foodItem.getIsAvailable()) {
-            throw new BadRequestException(
-                    "Food item is currently unavailable"
-            );
+            throw new BadRequestException("Food item is currently unavailable");
         }
 
         CartItem cartItem = cartItemRepository.findByCartIdAndFoodItemId(cart.getId(), foodItem.getId())
@@ -80,33 +89,25 @@ public class CartServiceImpl implements CartService {
 
         cartItemRepository.save(cartItem);
 
-        return buildCartResponse(cart);
     }
 
     @Override
     @Transactional
-    public CartResponse updateItem(Long userId, Long cartItemId, Integer quantity) {
+    public void updateItem(Long userId, Long cartItemId, Integer quantity) {
 
         Cart cart = getOrCreateCart(userId);
 
         if (quantity <= 0) {
-            throw new BadRequestException(
-                    "Quantity must be greater than 0"
-            );
+            throw new BadRequestException("Quantity must be greater than 0");
         }
 
         CartItem cartItem = cartItemRepository.findByIdAndCartId(cartItemId, cart.getId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Cart item not found"
-                        )
-                );
+                        new ResourceNotFoundException("Cart item not found"));
 
         cartItem.setQuantity(quantity);
 
         cartItemRepository.save(cartItem);
-
-        return buildCartResponse(cart);
     }
 
     @Override
@@ -115,29 +116,12 @@ public class CartServiceImpl implements CartService {
 
         Cart cart = getOrCreateCart(userId);
 
-        CartItem cartItem = cartItemRepository
-                .findByIdAndCartId(
-                        cartItemId,
-                        cart.getId()
-                )
+        CartItem cartItem = cartItemRepository.findByIdAndCartId(cartItemId, cart.getId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Cart item not found"
-                        )
+                        new ResourceNotFoundException("Cart item not found")
                 );
 
         cartItemRepository.delete(cartItem);
-    }
-
-    @Override
-    @Transactional
-    public void clearCart(Long userId) {
-
-        Cart cart = getOrCreateCart(userId);
-
-        cart.getItems().clear();
-
-        cartRepository.save(cart);
     }
 
     private Cart getOrCreateCart(Long userId) {
@@ -147,10 +131,7 @@ public class CartServiceImpl implements CartService {
 
                     User user = userRepository.findById(userId)
                             .orElseThrow(() ->
-                                    new ResourceNotFoundException(
-                                            "User not found"
-                                    )
-                            );
+                                    new ResourceNotFoundException("User not found"));
 
                     Cart cart = Cart.builder()
                             .user(user)
@@ -159,44 +140,6 @@ public class CartServiceImpl implements CartService {
 
                     return cartRepository.save(cart);
                 });
-    }
-
-    private CartResponse buildCartResponse(Cart cart) {
-
-        var items = cartItemRepository.findAll()
-                .stream()
-                .filter(item ->
-                        item.getCart().getId()
-                                .equals(cart.getId())
-                )
-                .map(this::mapCartItem)
-                .toList();
-
-        BigDecimal subtotal = items.stream()
-                .map(CartItemResponse::getItemTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal deliveryFee = subtotal.compareTo(BigDecimal.ZERO) > 0 ? new BigDecimal("40.00") :
-                                                                                            BigDecimal.ZERO;
-
-        BigDecimal tax = subtotal.multiply(new BigDecimal("0.05"));
-
-        BigDecimal discount = BigDecimal.ZERO;
-
-        BigDecimal total = subtotal
-                .add(deliveryFee)
-                .add(tax)
-                .subtract(discount);
-
-        return CartResponse.builder()
-                .cartId(cart.getId())
-                .items(items)
-                .subtotal(subtotal)
-                .deliveryFee(deliveryFee)
-                .tax(tax)
-                .discount(discount)
-                .totalAmount(total)
-                .build();
     }
 
     private CartItemResponse mapCartItem(CartItem item) {
