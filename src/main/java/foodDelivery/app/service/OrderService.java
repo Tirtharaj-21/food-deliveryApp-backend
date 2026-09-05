@@ -6,7 +6,7 @@ import foodDelivery.app.dto.response.OrderResponse;
 import java.util.List;
 
 public interface OrderService {
-    OrderResponse createOrder(Long userId, CreateOrderRequest request);
+    Long createOrder(Long userId, CreateOrderRequest request);
 
     List<OrderResponse> getUserOrders(Long userId);
 

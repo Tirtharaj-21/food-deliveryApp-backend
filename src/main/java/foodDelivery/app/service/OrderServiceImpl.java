@@ -29,7 +29,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse createOrder(Long userId, CreateOrderRequest request) {
+    public Long createOrder(Long userId, CreateOrderRequest request) {
 
         // 1. Get cart
         Cart cart = cartRepository.findByUserId(userId)
@@ -104,6 +104,8 @@ public class OrderServiceImpl implements OrderService {
 
         order = orderRepository.save(order);
 
+        Long orderId = order.getId();
+
         // 6. Create order items
         for (CartItem cartItem : cartItems) {
 
@@ -123,9 +125,7 @@ public class OrderServiceImpl implements OrderService {
         // 7. Clear cart
         cartItems.clear();
         cartRepository.save(cart);
-
-        // 8. Return response
-        return getOrderResponse(order);
+        return orderId;
     }
 
     @Override

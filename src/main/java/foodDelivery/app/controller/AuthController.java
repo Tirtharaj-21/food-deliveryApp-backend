@@ -23,9 +23,7 @@ public class AuthController {
     @Autowired
     AuthService authService;
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(
-            @Valid @RequestBody RegisterRequest request
-    ) {
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity
                 .status(HttpStatus
                         .CREATED)
@@ -33,10 +31,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
-            @Valid @RequestBody LoginRequest
-                    request
-    ) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(
                 authService.login(request)
         );
