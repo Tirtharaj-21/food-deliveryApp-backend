@@ -1,6 +1,7 @@
 package foodDelivery.app.controller;
 
 import foodDelivery.app.dto.request.FoodItemRequest;
+import foodDelivery.app.dto.response.ApiResponse;
 import foodDelivery.app.dto.response.FoodItemResponse;
 import foodDelivery.app.service.FoodItemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,83 +20,61 @@ public class FoodItemController {
 
     @Autowired
     FoodItemService foodItemService;
-    @PostMapping
-    public ResponseEntity<FoodItemResponse> createFoodItem(
-            @Valid @RequestBody FoodItemRequest request
-    ) {
+    @PostMapping("/save")
+    public ResponseEntity<ApiResponse<String>> createFoodItem(@Valid @RequestBody FoodItemRequest request) {
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(
-                        foodItemService.createFoodItem(request)
-                );
+        foodItemService.createFoodItem(request);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .success(true)
+                .data("FoodItem saved")
+                .build();
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<FoodItemResponse> getFoodItemById(
-            @PathVariable Long id
-    ) {
+    @GetMapping("/getFoodItemById/{id}")
+    public ResponseEntity<FoodItemResponse> getFoodItemById(@PathVariable Long id) {
 
-        return ResponseEntity.ok(
-                foodItemService.getFoodItemById(id)
-        );
+        return ResponseEntity.ok(foodItemService.getFoodItemById(id));
     }
 
     @GetMapping("/restaurant/{restaurantId}")
-    public ResponseEntity<List<FoodItemResponse>>
-    getFoodItemsByRestaurant(
-            @PathVariable Long restaurantId
-    ) {
+    public ResponseEntity<List<FoodItemResponse>> getFoodItemsByRestaurant(@PathVariable Long restaurantId) {
 
         return ResponseEntity.ok(
-                foodItemService.getFoodItemsByRestaurant(
-                        restaurantId
-                )
+                foodItemService.getFoodItemsByRestaurant(restaurantId)
         );
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<FoodItemResponse>>
-    getFoodItemsByCategory(
-            @PathVariable Long categoryId
-    ) {
+    public ResponseEntity<List<FoodItemResponse>> getFoodItemsByCategory(@PathVariable Long categoryId) {
 
         return ResponseEntity.ok(
-                foodItemService.getFoodItemsByCategory(
-                        categoryId
-                )
+                foodItemService.getFoodItemsByCategory(categoryId)
         );
     }
 
-//    @GetMapping("/search")
-//    public ResponseEntity<List<FoodItemResponse>>
-//    searchFoodItems(
-//            @RequestParam String keyword
-//    ) {
-//
-//        return ResponseEntity.ok(
-//                foodItemService.searchFoodItems(keyword)
-//        );
-//    }
+    @PutMapping("/updateFoodItemById/{id}")
+    public ResponseEntity<ApiResponse<String>> updateFoodItem(@PathVariable Long id,
+                                                              @Valid @RequestBody FoodItemRequest request) {
 
-    @PutMapping("/{id}")
-    public ResponseEntity<FoodItemResponse> updateFoodItem(
-            @PathVariable Long id,
-            @Valid @RequestBody FoodItemRequest request
-    ) {
+        foodItemService.updateFoodItem(id, request);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .success(true)
+                .data("FoodItem modified")
+                .build();
+        return ResponseEntity.ok(response);
 
-        return ResponseEntity.ok(
-                foodItemService.updateFoodItem(id, request)
-        );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteFoodItem(
-            @PathVariable Long id
-    ) {
+    @DeleteMapping("/deleteFoodItem/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteFoodItem(@PathVariable Long id) {
 
         foodItemService.deleteFoodItem(id);
 
-        return ResponseEntity.noContent().build();
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .success(true)
+                .data("FoodItem deleted")
+                .build();
+        return ResponseEntity.ok(response);
     }
 }

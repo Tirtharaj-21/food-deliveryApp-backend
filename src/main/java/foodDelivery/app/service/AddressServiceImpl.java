@@ -19,7 +19,7 @@ public class AddressServiceImpl implements AddressService{
     UserRepository userRepository;
 
     @Override
-    public AddressResponse createAddress(Long userId, AddressRequest request) {
+    public Long createAddress(Long userId, AddressRequest request) {
 
         User user = getUser(userId);
 
@@ -34,7 +34,8 @@ public class AddressServiceImpl implements AddressService{
                 .longitude(request.getLongitude())
                 .build();
 
-        return mapToResponse(addressRepository.save(address));
+        Long Addressid = addressRepository.save(address).getId();
+        return Addressid;
     }
 
     @Override
@@ -52,26 +53,21 @@ public class AddressServiceImpl implements AddressService{
     @Override
     public AddressResponse getAddressById(Long userId, Long addressId) {
 
-        Address address = addressRepository
-                .findByIdAndUserId(addressId, userId)
+        Address address = addressRepository.findByIdAndUserId(addressId, userId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Address not found"
-                        )
+                        new ResourceNotFoundException("Address not found")
                 );
 
         return mapToResponse(address);
     }
 
     @Override
-    public AddressResponse updateAddress(Long userId, Long addressId, AddressRequest request) {
+    public void updateAddress(Long userId, Long addressId, AddressRequest request) {
 
-        Address address = addressRepository
-                .findByIdAndUserId(addressId, userId)
+        Address address = addressRepository.findByIdAndUserId(addressId, userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Address not found"
-                        )
+                                "Address not found")
                 );
 
         address.setLabel(request.getLabel());
@@ -81,10 +77,7 @@ public class AddressServiceImpl implements AddressService{
         address.setPincode(request.getPincode());
         address.setLatitude(request.getLatitude());
         address.setLongitude(request.getLongitude());
-
-        return mapToResponse(
-                addressRepository.save(address)
-        );
+        addressRepository.save(address);
     }
 
     @Override
